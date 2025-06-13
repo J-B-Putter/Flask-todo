@@ -57,58 +57,59 @@ def login_form():
 #-----------------------------------------------------------
 # Things page route - Show all the things, and new thing form
 #-----------------------------------------------------------
-@app.get("/things/")
-def show_all_things():
+@app.get("/tasks/")
+def show_all_tasks():
     with connect_db() as client:
         # Get all the things from the DB
         sql = """
-            SELECT things.id,
-                   things.name,
+            SELECT tasks.id,
+                   tasks.name,
+                   tasks.priority,
                    users.name AS owner
 
-            FROM things
-            JOIN users ON things.user_id = users.id
+            FROM tasks
+            JOIN users ON tasks.user_id = users.id
 
-            ORDER BY things.name ASC
+            ORDER BY tasks.name ASC
         """
         result = client.execute(sql)
-        things = result.rows
+        tasks = result.rows
 
         # And show them on the page
-        return render_template("pages/things.jinja", things=things)
+        return render_template("pages/tasks.jinja", tasks=tasks)
 
 
-#-----------------------------------------------------------
-# Thing page route - Show details of a single thing
-#-----------------------------------------------------------
-@app.get("/thing/<int:id>")
-def show_one_thing(id):
-    with connect_db() as client:
-        # Get the thing details from the DB, including the owner info
-        sql = """
-            SELECT things.id,
-                   things.name,
-                   things.price,
-                   things.user_id,
-                   users.name AS owner
+# #-----------------------------------------------------------
+# # Thing page route - Show details of a single thing
+# #-----------------------------------------------------------
+# @app.get("/thing/<int:id>")
+# def show_one_thing(id):
+#     with connect_db() as client:
+#         # Get the thing details from the DB, including the owner info
+#         sql = """
+#             SELECT things.id,
+#                    things.name,
+#                    things.price,
+#                    things.user_id,
+#                    users.name AS owner
 
-            FROM things
-            JOIN users ON things.user_id = users.id
+#             FROM things
+#             JOIN users ON things.user_id = users.id
 
-            WHERE things.id=?
-        """
-        values = [id]
-        result = client.execute(sql, values)
+#             WHERE things.id=?
+#         """
+#         values = [id]
+#         result = client.execute(sql, values)
 
-        # Did we get a result?
-        if result.rows:
-            # yes, so show it on the page
-            thing = result.rows[0]
-            return render_template("pages/thing.jinja", thing=thing)
+#         # Did we get a result?
+#         if result.rows:
+#             # yes, so show it on the page
+#             thing = result.rows[0]
+#             return render_template("pages/thing.jinja", thing=thing)
 
-        else:
-            # No, so show error
-            return not_found_error()
+#         else:
+#             # No, so show error
+#             return not_found_error()
 
 
 #-----------------------------------------------------------
@@ -117,7 +118,7 @@ def show_one_thing(id):
 #-----------------------------------------------------------
 @app.post("/add")
 @login_required
-def add_a_thing():
+def add_a_task():
     # Get the data from the form
     name  = request.form.get("name")
     price = request.form.get("price")
@@ -131,34 +132,34 @@ def add_a_thing():
 
     with connect_db() as client:
         # Add the thing to the DB
-        sql = "INSERT INTO things (name, price, user_id) VALUES (?, ?, ?)"
+        sql = "INSERT INTO tasks (name, price, user_id) VALUES (?, ?, ?)"
         values = [name, price, user_id]
         client.execute(sql, values)
 
         # Go back to the home page
         flash(f"Thing '{name}' added", "success")
-        return redirect("/things")
+        return redirect("/tasks")
 
 
 #-----------------------------------------------------------
-# Route for deleting a thing, Id given in the route
+# Route for deleting a task, Id given in the route
 # - Restricted to logged in users
 #-----------------------------------------------------------
 @app.get("/delete/<int:id>")
 @login_required
-def delete_a_thing(id):
+def delete_a_task(id):
     # Get the user id from the session
     user_id = session["user_id"]
 
     with connect_db() as client:
         # Delete the thing from the DB only if we own it
-        sql = "DELETE FROM things WHERE id=? AND user_id=?"
+        sql = "DELETE FROM tasks WHERE id=? AND user_id=?"
         values = [id, user_id]
         client.execute(sql, values)
 
         # Go back to the home page
-        flash("Thing deleted", "success")
-        return redirect("/things")
+        flash("Task deleted", "success")
+        return redirect("/tasks")
 
 
 #-----------------------------------------------------------
