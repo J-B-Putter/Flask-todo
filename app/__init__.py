@@ -28,14 +28,13 @@ init_error(app)     # Handle errors and exceptions
 @app.get("/")
 def index():
     return render_template("pages/home.jinja")
-
-
-#-----------------------------------------------------------
-# About page route
-#-----------------------------------------------------------
-@app.get("/about/")
-def about():
-    return render_template("pages/about.jinja")
+ 
+# #-----------------------------------------------------------
+# # About page route
+# #-----------------------------------------------------------
+# @app.get("/about/")
+# def about():
+#     return render_template("pages/about.jinja")
 
 
 #-----------------------------------------------------------
@@ -55,28 +54,34 @@ def login_form():
 
 
 #-----------------------------------------------------------
-# Things page route - Show all the things, and new thing form
+# Things page route - Show all the tasks, and new task form
 #-----------------------------------------------------------
 @app.get("/tasks/")
 def show_all_tasks():
-    with connect_db() as client:
-        # Get all the things from the DB
-        sql = """
-            SELECT tasks.id,
-                   tasks.name,
-                   tasks.priority,
-                   users.name AS owner
 
-            FROM tasks
-            JOIN users ON tasks.user_id = users.id
+        if "logged in" in session: 
 
-            ORDER BY tasks.name ASC
-        """
-        result = client.execute(sql)
-        tasks = result.rows
+            user_id = session["user_id"]
+            
+            with connect_db() as client:
+            # Get all the tasks from the DB belonging to the logged in user
+                sql = """
+                    SELECT tasks.name,
+                           tasks.priority,
+                           users.name AS owner
 
-        # And show them on the page
-        return render_template("pages/tasks.jinja", tasks=tasks)
+                    FROM tasks
+                    JOIN users ON tasks.user_id = users.id
+
+                    ORDER BY tasks.name ASC
+                """
+            result = client.execute(sql)
+            tasks = result.rows
+
+            # And show them on the page
+            return render_template("pages/tasks.jinja", tasks=tasks)
+        else:
+            return redirect("/login")
 
 
 # #-----------------------------------------------------------
@@ -121,24 +126,24 @@ def show_all_tasks():
 def add_a_task():
     # Get the data from the form
     name  = request.form.get("name")
-    price = request.form.get("price")
+    priority = request.form.get("priority")
 
     # Sanitise the inputs
     name = html.escape(name)
-    price = html.escape(price)
+    priority = html.escape(priority)
 
     # Get the user id from the session
     user_id = session["user_id"]
 
     with connect_db() as client:
         # Add the thing to the DB
-        sql = "INSERT INTO tasks (name, price, user_id) VALUES (?, ?, ?)"
-        values = [name, price, user_id]
+        sql = "INSERT INTO tasks (name, priority, user_id) VALUES (?, ?, ?)"
+        values = [name, priority, user_id]
         client.execute(sql, values)
 
         # Go back to the home page
-        flash(f"Thing '{name}' added", "success")
-        return redirect("/tasks")
+        flash(f"Task added", "success")
+        return redirect("/")
 
 
 #-----------------------------------------------------------
@@ -249,5 +254,5 @@ def logout():
 
     # And head back to the home page
     flash("Logged out successfully", "success")
-    return redirect("/")
+    return redirect("/login")
 
