@@ -10,12 +10,14 @@
 
 {% block title %}
 
-    Flask Demo
+    TO-DOs for {{ session.user_name }}
 
 {% endblock %}
 
 
+
 {% block content %}
+{% if session.user_id %}
 
     <h1>TO-DOs</h1>
 
@@ -26,12 +28,13 @@
             {% for task in tasks %}
 
                 <li>
-                    <strong>{{ task.name }}</strong> - {{ task.priority }}
+                    <strong>{{ task.name }}</strong> - {{ task.priority }} 
+                    {% if task.complete %} <a href="/incomplete/{{ task.id }}"> X </a>  {% else %} <a href="/complete/{{ task.id }}"> O </a>{% endif%}
                 </li>
 
             {% else %}
 
-                <p>None!</p>
+                <p>No Tasks</p>
 
             {% endfor %}
         </ul>
@@ -39,37 +42,35 @@
     </article>
 
 
-    {# Only show form if user is logged in #}
-    {# {% if session.user_id %} #}
+    <article>
 
-        <article>
+        <h3>Add a New Task...</h3>
 
-            <h3>Add a New Task...</h3>
+        <form action="/add" method="POST">
 
-            <form action="/add" method="POST">
+            <input
+                type="text"
+                name="name"
+                placeholder="Name of new task"
+                required
+            >
 
-                <input
-                    type="text"
-                    name="name"
-                    placeholder="Name of new task"
-                    required
-                >
+            <input
+                type="number"
+                name="priority"
+                min="0"
+                placeholder="Priority 1 - 5"
+                required
+            >
 
-                <input
-                    type="number"
-                    name="priority"
-                    min="0"
-                    placeholder="Priority 1 - 5"
-                    required
-                >
+            <button>Add the Task</button>
 
-                <button>Add the Task</button>
+        </form>
 
-            </form>
+    </article>
 
-        </article>
+{% endif %}
 
-    {# {% endif %} #}
 
 {% endblock %}
 

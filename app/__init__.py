@@ -27,14 +27,51 @@ init_error(app)     # Handle errors and exceptions
 #-----------------------------------------------------------
 @app.get("/")
 def index():
-    return render_template("pages/home.jinja")
- 
-# #-----------------------------------------------------------
-# # About page route
-# #-----------------------------------------------------------
-# @app.get("/about/")
-# def about():
-#     return render_template("pages/about.jinja")
+
+    if "logged_in" in session:
+        with connect_db() as client:
+            user_id = session["user_id"]
+
+            sql = """   SELECT 
+                            id,
+                            name,
+                            priority,
+                            completed
+                        FROM tasks
+
+                        WHERE 
+                            user_id=?
+                        
+                        ORDER BY priority DESC
+        
+                    """
+            params = [user_id]
+            result = client.execute(sql, params)
+            tasks = result.rows
+
+            return render_template("pages/home.jinja", tasks=tasks)
+
+    else:
+        return render_template("pages/welcome.jinja")
+#-----------------------------------------------------------
+# Route for deleting a task, Id given in the route
+# - Restricted to logged in users
+#-----------------------------------------------------------
+@app.get("/complete/<int:id>")
+@login_required
+def complete_a_task(id):
+    # Get the user id from the session
+    # user_id = session["user_id"]
+
+    with connect_db() as client:
+        # Delete the thing from the DB only if we own it
+        sql = "DELETE FROM tasks WHERE id=? AND user_id=?"
+        values = [id]
+        client.execute(sql, values)
+
+        # Go back to the home page
+        flash("Task completed", "success")
+        return redirect("/")
 
 
 #-----------------------------------------------------------
@@ -53,72 +90,9 @@ def login_form():
     return render_template("pages/login.jinja")
 
 
-#-----------------------------------------------------------
-# Things page route - Show all the tasks, and new task form
-#-----------------------------------------------------------
-@app.get("/tasks/")
-def show_all_tasks():
-
-        if "logged in" in session: 
-
-            user_id = session["user_id"]
-            
-            with connect_db() as client:
-            # Get all the tasks from the DB belonging to the logged in user
-                sql = """
-                    SELECT tasks.name,
-                           tasks.priority,
-                           users.name AS owner
-
-                    FROM tasks
-                    JOIN users ON tasks.user_id = users.id
-
-                    ORDER BY tasks.name ASC
-                """
-            result = client.execute(sql)
-            tasks = result.rows
-
-            # And show them on the page
-            return render_template("pages/tasks.jinja", tasks=tasks)
-        else:
-            return redirect("/login")
-
-
-# #-----------------------------------------------------------
-# # Thing page route - Show details of a single thing
-# #-----------------------------------------------------------
-# @app.get("/thing/<int:id>")
-# def show_one_thing(id):
-#     with connect_db() as client:
-#         # Get the thing details from the DB, including the owner info
-#         sql = """
-#             SELECT things.id,
-#                    things.name,
-#                    things.price,
-#                    things.user_id,
-#                    users.name AS owner
-
-#             FROM things
-#             JOIN users ON things.user_id = users.id
-
-#             WHERE things.id=?
-#         """
-#         values = [id]
-#         result = client.execute(sql, values)
-
-#         # Did we get a result?
-#         if result.rows:
-#             # yes, so show it on the page
-#             thing = result.rows[0]
-#             return render_template("pages/thing.jinja", thing=thing)
-
-#         else:
-#             # No, so show error
-#             return not_found_error()
-
 
 #-----------------------------------------------------------
-# Route for adding a thing, using data posted from a form
+# Route for adding a task, using data posted from a form
 # - Restricted to logged in users
 #-----------------------------------------------------------
 @app.post("/add")

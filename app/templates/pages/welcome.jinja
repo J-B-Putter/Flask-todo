@@ -1,0 +1,30 @@
+{#=====================================================
+  About page (DEMO)
+  - Information about Flask
+  - Information about Jinja
+  - Information about Turso
+  - Information about PicoCSS
+=====================================================#}
+
+{% extends 'pages/base.jinja' %}
+
+
+{% block title %}
+
+    To-Do - Welcome
+
+{% endblock %}
+
+
+{% block content %}
+
+   <article>
+        <h1>
+            Welcome!
+        </h1>
+
+        <h4><a href="/login">Log In</a> to see To-Do list</h4>
+    </article>
+
+{% endblock %}
+
