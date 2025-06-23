@@ -26,11 +26,24 @@
 
         <ul>
             {% for task in tasks %}
+                <p class="task">                    
+                    <span class="status">
 
-                <li>
-                    <strong>{{ task.name }}</strong> - {{ task.priority }} 
-                    {% if task.complete %} <a href="/incomplete/{{ task.id }}"> X </a>  {% else %} <a href="/complete/{{ task.id }}"> O </a>{% endif%}
-                </li>
+                            {% if task.completed %} 
+                            
+                                <a href="/incomplete/{{ task.id }}">▣</a>
+                                <a href="/delete/{{ task.id }}"> Delete </a>
+
+                            {% else %} 
+
+                                <a href="/complete/{{ task.id }}">▢</a>
+                                
+                            {% endif %}
+                    </span> 
+                    <span class="name">{{ task.name }}</span>
+                    <span class="priority">{{ task.priority }}</span>
+
+                </p>
 
             {% else %}
 

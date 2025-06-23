@@ -54,18 +54,16 @@ def index():
     else:
         return render_template("pages/welcome.jinja")
 #-----------------------------------------------------------
-# Route for deleting a task, Id given in the route
+# Route for marking a task complete, Id given in the route
 # - Restricted to logged in users
 #-----------------------------------------------------------
 @app.get("/complete/<int:id>")
 @login_required
 def complete_a_task(id):
-    # Get the user id from the session
-    # user_id = session["user_id"]
 
     with connect_db() as client:
-        # Delete the thing from the DB only if we own it
-        sql = "DELETE FROM tasks WHERE id=? AND user_id=?"
+        # Mark the task complete
+        sql = "UPDATE tasks SET completed=1 WHERE id=?"
         values = [id]
         client.execute(sql, values)
 
@@ -73,6 +71,23 @@ def complete_a_task(id):
         flash("Task completed", "success")
         return redirect("/")
 
+#-----------------------------------------------------------
+# Route for marking a task incomplete, Id given in the route
+# - Restricted to logged in users
+#-----------------------------------------------------------
+@app.get("/incomplete/<int:id>")
+@login_required
+def incomplete_a_task(id):
+    
+    with connect_db() as client:
+        # Mark the task complete
+        sql = "UPDATE tasks SET completed=0 WHERE id=?"
+        values = [id]
+        client.execute(sql, values)
+
+        # Go back to the home page
+        flash("Task marked incomplete", "success")
+        return redirect("/")
 
 #-----------------------------------------------------------
 # User registration form route
