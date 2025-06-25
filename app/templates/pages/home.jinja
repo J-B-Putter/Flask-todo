@@ -19,31 +19,23 @@
 {% block content %}
 {% if session.user_id %}
 
-    <h1>TO-DOs</h1>
+    <h3>TO-DOs</h3>
 
-
-    <article>
-
+        <article>
         <ul>
             {% for task in tasks %}
+                {% if task.completed == false %}
+
                 <p class="task">                    
                     <span class="status">
-
-                            {% if task.completed %} 
-                            
-                                <a href="/incomplete/{{ task.id }}">▣</a>
-                                <a href="/delete/{{ task.id }}"> Delete </a>
-
-                            {% else %} 
-
-                                <a href="/complete/{{ task.id }}">▢</a>
-                                
-                            {% endif %}
+                        <a href="/complete/{{ task.id }}">⬜</a>        
                     </span> 
+                    <span class="priority">({{ task.priority }})</span>
                     <span class="name">{{ task.name }}</span>
-                    <span class="priority">{{ task.priority }}</span>
+                    
 
                 </p>
+                {% endif %}
 
             {% else %}
 
@@ -51,8 +43,30 @@
 
             {% endfor %}
         </ul>
+        </article>
+    <h3>Completed</h3>
 
-    </article>
+        <article>
+        <ul>
+            {% for task in tasks %}
+                {% if task.completed %}
+
+                <p class="task">                    
+                    <span class="status">
+                        <a href="/incomplete/{{ task.id }}">✅</a>
+                        <a href="/delete/{{ task.id }}"> <span style="color:red">Delete</span> </a>               
+                    </span> 
+                    <span class="priority">({{ task.priority }})</span>
+                    <span class="name">{{ task.name }}</span>
+                </p>
+                {% endif %}
+            {% else %}
+
+                <p>No Tasks</p>
+
+            {% endfor %}
+        </ul>
+        </article>
 
 
     <article>

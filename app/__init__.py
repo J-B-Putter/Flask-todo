@@ -153,7 +153,7 @@ def delete_a_task(id):
 
         # Go back to the home page
         flash("Task deleted", "success")
-        return redirect("/tasks")
+        return redirect("/")
 
 
 #-----------------------------------------------------------
